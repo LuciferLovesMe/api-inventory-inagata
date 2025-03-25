@@ -41,7 +41,50 @@ class AuthController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $response = null;
+        $responseCode = Response::HTTP_OK;
+        $message = '';
+
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'name' => 'required',
+                'email' => 'required',
+                'password' => 'required',
+                'id_warehouses' => 'required'
+            ]);
+
+            $user = $this->users
+                ->insert([
+                    'name' => $request->get('name'),
+                    'email' => $request->get('email'),
+                    'password' => Hash::make($request->get('password')),
+                    'id_warehouses' => $request->get('id_warehouses'),
+                    'created_at' => now()
+                ]);
+
+            $response = [
+                'data' => $user,
+                'token' => $user->createToken('tokenize')->plainTextValue
+            ];
+            $message = 'Berhasil menambahkan pengguna baru.';
+            $responseCode = Response::HTTP_OK;
+        } catch (Exception $e) {
+            DB::rollBack();
+            $response = 'Terjadi kesalahan.';
+            $message = $e->getMessage();
+            $responseCode = Response::HTTP_BAD_REQUEST;
+        } catch (QueryException $e) {
+            DB::rollBack();
+            $response = 'Terjadi kesalahan.';
+            $message = $e->getMessage();
+            $responseCode = Response::HTTP_BAD_REQUEST;
+        } finally {
+            return response()->json([
+                'message' => $message,
+                'data' => $response,
+            ], $responseCode);
+        }
     }
 
     /**
