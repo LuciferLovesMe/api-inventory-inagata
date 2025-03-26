@@ -22,6 +22,6 @@ Route::middleware('auth:sanctum')->group(function() {
 
     // Warehouse
     Route::apiResource('warehouse', WarehouseController::class);
-    // Warehouse
+    // Item
     Route::apiResource('item', ItemsController::class);
 });
