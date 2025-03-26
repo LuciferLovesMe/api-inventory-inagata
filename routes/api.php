@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\ItemsController;
 use App\Http\Controllers\API\WarehouseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,4 +22,6 @@ Route::middleware('auth:sanctum')->group(function() {
 
     // Warehouse
     Route::apiResource('warehouse', WarehouseController::class);
+    // Warehouse
+    Route::apiResource('item', ItemsController::class);
 });
