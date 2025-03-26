@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ItemsController;
+use App\Http\Controllers\API\TotalItemsController;
 use App\Http\Controllers\API\WarehouseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -24,4 +25,7 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::apiResource('warehouse', WarehouseController::class);
     // Item
     Route::apiResource('item', ItemsController::class);
+    // Total Stock
+    Route::apiResource('total-stock', TotalItemsController::class);
+    Route::post('/total-stock/out', [TotalItemsController::class, 'outStock']);
 });
