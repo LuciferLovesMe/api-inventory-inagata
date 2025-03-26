@@ -41,6 +41,7 @@ class AuthController extends Controller
      */
     public function store(Request $request)
     {
+        // return $request->all();
         $response = null;
         $responseCode = Response::HTTP_OK;
         $message = '';
@@ -49,26 +50,29 @@ class AuthController extends Controller
         try {
             $request->validate([
                 'name' => 'required',
-                'email' => 'required',
+                'email' => 'required|unique:users,email',
                 'password' => 'required',
                 'id_warehouses' => 'required'
             ]);
 
             $user = $this->users
-                ->insert([
+                ->create([
                     'name' => $request->get('name'),
                     'email' => $request->get('email'),
                     'password' => Hash::make($request->get('password')),
                     'id_warehouses' => $request->get('id_warehouses'),
+                    'role' => 'warehouse',
                     'created_at' => now()
                 ]);
 
+            $token = $user->createToken('tokenize')->plainTextToken;
             $response = [
                 'data' => $user,
-                'token' => $user->createToken('tokenize')->plainTextValue
+                'token' => $token
             ];
             $message = 'Berhasil menambahkan pengguna baru.';
             $responseCode = Response::HTTP_OK;
+            DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
             $response = 'Terjadi kesalahan.';
