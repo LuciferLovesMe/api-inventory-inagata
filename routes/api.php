@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\AnalyzeController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ItemsController;
 use App\Http\Controllers\API\TotalItemsController;
@@ -23,11 +24,16 @@ Route::middleware('auth:sanctum')->group(function() {
 
     // Warehouse
     Route::apiResource('warehouse', WarehouseController::class);
+    
     // Item
     Route::apiResource('item', ItemsController::class);
+    
     // Total Stock
     Route::apiResource('total-stock', TotalItemsController::class);
     Route::post('/total-stock/out', [TotalItemsController::class, 'outStock']);
     Route::post('/total-stock/import', [TotalItemsController::class, 'import']);
+
+    // Analisis data
+    Route::get('get-analyze-data', [AnalyzeController::class, 'getAnalyze']);
 });
 Route::get('/total-stock/export', [TotalItemsController::class, 'export']);
