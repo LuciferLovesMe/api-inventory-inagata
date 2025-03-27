@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Imports\ImportStock;
 use App\Models\Item;
 use App\Models\TotalItem;
 use Exception;
@@ -10,6 +11,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TotalItemsController extends Controller
 {
@@ -218,37 +220,13 @@ class TotalItemsController extends Controller
         
         DB::beginTransaction();
         try {
-            $idWarehouses = ($request->user()->id_warehouses != null) ? $request->user()->id_warehouse : $request->get('id_warehouse');
-            $idItems = $this->items->where('code_item', $request->get('code_item'))->first();
-            if ($idItems) {
-                $dataExists = $this->total_items
-                    ->where('id_warehouses', $idWarehouses)
-                    ->where('id_items', $idItems->id)
-                    ->first();
-                
-                if($dataExists) {
-                    $this->total_items
-                        ->where('id', $dataExists->id)
-                        ->update([
-                            'stock' => ($dataExists->stock + $request->get('stock')),
-                            'updated_at' => now()
-                        ]);
-                } else {
-                    $this->total_items
-                        ->insert([
-                           'id_items' => $idItems->id,
-                           'id_warehouses' => $idWarehouses,
-                           'stock' => $request->get('stock'),
-                           'created_at' => now()
-                        ]);
-                }
+            $file = $request->file('import');
+            $import = new ImportStock;
+            Excel::import($import, $file);
 
-                post_stock_movement($idItems->id, $request->user()->id, $idWarehouses, 'in', $request->get('stock'));
-
-                DB::commit();
-                $response = 'Berhasil menambahkan stok barang ('. $idItems->name_item .') sebanyak ' . $request->get('stock') . ' buah.';
-                $message = 'Berhasil';
-            }
+            DB::commit();
+            $response = 'Berhasil';
+            $message = $import->getRowCount();
         } catch (Exception $e) {
             DB::rollBack();
             $response = 'Terjadi kesalahan.';

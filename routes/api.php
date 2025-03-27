@@ -28,4 +28,5 @@ Route::middleware('auth:sanctum')->group(function() {
     // Total Stock
     Route::apiResource('total-stock', TotalItemsController::class);
     Route::post('/total-stock/out', [TotalItemsController::class, 'outStock']);
+    Route::post('/total-stock/import', [TotalItemsController::class, 'import']);
 });
