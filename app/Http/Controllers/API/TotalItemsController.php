@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Exports\ExportStock;
 use App\Http\Controllers\Controller;
 use App\Imports\ImportStock;
 use App\Models\Item;
@@ -246,6 +247,10 @@ class TotalItemsController extends Controller
     }
 
     public function export (Request $request) {
-        
+        // $file = Excel::download(new ExportStock, 'stock.xlsx');
+        // $response = Response::make($file);
+        // $response->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // return $response;
+        return Excel::download(new ExportStock, 'stock.xlsx');
     }
 }

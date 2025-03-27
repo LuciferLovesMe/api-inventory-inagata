@@ -30,3 +30,4 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::post('/total-stock/out', [TotalItemsController::class, 'outStock']);
     Route::post('/total-stock/import', [TotalItemsController::class, 'import']);
 });
+Route::get('/total-stock/export', [TotalItemsController::class, 'export']);
