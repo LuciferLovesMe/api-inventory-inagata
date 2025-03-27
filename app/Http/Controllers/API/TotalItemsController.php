@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Exports\ExportStock;
 use App\Http\Controllers\Controller;
 use App\Imports\ImportStock;
+use App\Mail\SendEmailNotif;
 use App\Models\Item;
 use App\Models\TotalItem;
 use Exception;
@@ -12,6 +13,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TotalItemsController extends Controller
@@ -182,7 +184,7 @@ class TotalItemsController extends Controller
                         post_stock_movement($idItems->id, $request->user()->id, $idWarehouses, 'out', $request->get('stock'));
                         
                         if(($dataExists->stock - $request->get('stock')) < $threshold) {
-
+                            Mail::to($request->user()->email)->send(new SendEmailNotif($this->total_items->where('id', $dataExists->id)->first()));
                         }
                         
                         DB::commit();
