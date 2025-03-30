@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Imports\ImportStock;
 use App\Mail\SendEmailNotif;
 use App\Models\Item;
+use App\Models\StockMovement;
 use App\Models\TotalItem;
 use Exception;
 use Illuminate\Database\QueryException;
@@ -18,12 +19,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class TotalItemsController extends Controller
 {
-    private $total_items, $items;
+    private $total_items, $items, $stock_movement;
 
-    public function __construct(TotalItem $total_item, Item $item)
+    public function __construct(TotalItem $total_item, Item $item, StockMovement $stock_movement)
     {
         $this->total_items = $total_item;
         $this->items = $item;
+        $this->stock_movement = $stock_movement;
     }
 
     /**
@@ -248,11 +250,44 @@ class TotalItemsController extends Controller
         }        
     }
 
-    public function export (Request $request) {
+    public function exportStock (Request $request) {
+        // return 'a';
         // $file = Excel::download(new ExportStock, 'stock.xlsx');
         // $response = Response::make($file);
         // $response->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         // return $response;
-        return Excel::download(new ExportStock, 'stock.xlsx');
+        $export = new ExportStock;
+        return response()->streamDownload(function (){
+                echo Excel::raw(new ExportStock, \Maatwebsite\Excel\Excel::XLSX);
+            }, 'stock.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="stock.xlsx"',
+        ]);
+    }
+
+    public function locateStock (Request $request) {
+        $response = null;
+        $responseCode = Response::HTTP_OK;
+        $message = '';
+
+        try {
+            $response = ($request->user()->id_warehouses != null) ? 
+                $this->stock_movement->orderBy('id', 'desc')->with(['item', 'warehouse'])->where('id_warehouse', $request->user()->id_warehouse)->get() : 
+                $this->stock_movement->orderBy('id', 'desc')->with(['item', 'warehouse'])->get();
+            $message = 'Berhasil menampilkan list.';
+        } catch (Exception $e) {
+            $response = 'Terjadi kesalahan.';
+            $message = $e->getMessage();
+            $responseCode = Response::HTTP_BAD_REQUEST;
+        } catch (QueryException $e) {
+            $response = 'Terjadi kesalahan.';
+            $message = $e->getMessage();
+            $responseCode = Response::HTTP_BAD_REQUEST;
+        } finally {
+            return response()->json([
+                'message' => $message,
+                'data' => $response,
+            ], $responseCode);
+        }
     }
 }

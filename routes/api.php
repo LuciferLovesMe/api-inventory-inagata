@@ -33,8 +33,10 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::apiResource('total-stock', TotalItemsController::class);
     Route::post('/total-stock/out', [TotalItemsController::class, 'outStock']);
     Route::post('/total-stock/import', [TotalItemsController::class, 'import']);
+    Route::get('/export-stock', [TotalItemsController::class, 'exportStock']);
+    
+    Route::get('/locate-stock', [TotalItemsController::class, 'LocateStock']);
 
     // Analisis data
     Route::get('get-analyze-data', [AnalyzeController::class, 'getAnalyze']);
 });
-Route::get('/total-stock/export', [TotalItemsController::class, 'export']);
