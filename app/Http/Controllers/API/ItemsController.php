@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Imports\ImportItems;
 use App\Models\Item;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ItemsController extends Controller
 {
@@ -205,6 +207,40 @@ class ItemsController extends Controller
                 $message = 'Data barang tidak ditemukan.';
                 $response = null;
             }
+        } catch (Exception $e) {
+            DB::rollBack();
+            $response = 'Terjadi kesalahan.';
+            $message = $e->getMessage();
+            $responseCode = Response::HTTP_BAD_REQUEST;
+        } catch (QueryException $e) {
+            DB::rollBack();
+            $response = 'Terjadi kesalahan.';
+            $message = $e->getMessage();
+            $responseCode = Response::HTTP_BAD_REQUEST;
+        } finally {
+            return response()->json([
+                'message' => $message,
+                'data' => $response,
+            ], $responseCode);
+        }
+    }
+
+    public function importItem(Request $request) 
+    {
+        
+        $response = null;
+        $responseCode = Response::HTTP_OK;
+        $message = '';
+        
+        DB::beginTransaction();
+        try {
+            $file = $request->file('import_item');
+            $import = new ImportItems;
+            Excel::import($import, $file);
+
+            DB::commit();
+            $response = 'Berhasil';
+            $message = $import->getRowCount();
         } catch (Exception $e) {
             DB::rollBack();
             $response = 'Terjadi kesalahan.';
